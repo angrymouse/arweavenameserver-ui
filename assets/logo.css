@@ -1,0 +1,9 @@
+@charset "utf-8";
+	.NormalCharacterStyle
+{
+	font-family : Cascadia Code;
+	font-weight : bold;
+	font-size : 170pt;
+	color : #F15A24;
+	color : rgb(241, 90, 36);
+}
