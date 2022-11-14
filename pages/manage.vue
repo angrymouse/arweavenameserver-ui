@@ -41,7 +41,7 @@ const ardbState = useState("ardb", () => new ArDB(arweave.value));
 let wallet = (useState("wallet", () => null)).value;
 let ardb = ardbState.value;
 let managedNames = ref([])
-console.log(wallet)
+
 managedNames.value = (await ardb.search("transactions").appName("Arweave-Nameserver").tags([{ name: "App-Name", values: ["Arweave-Nameserver"] }, { name: "Manager", values: [await wallet.getActiveAddress()] }]).exclude(["anchor"]).findAll()).map(nameRecord => {
     console.log({
         id: nameRecord.id,
