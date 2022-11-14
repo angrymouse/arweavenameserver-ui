@@ -3,7 +3,8 @@
 export default defineNuxtConfig({
     modules: ['@nuxtjs/tailwindcss'],
     ssr: false,
-    mode: "static",
+    target: "static",
+    mode: "spa",
     app: {
         head: {
             htmlAttrs: { "data-theme": "luxury", }
