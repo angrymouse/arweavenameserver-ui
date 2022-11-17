@@ -41,16 +41,15 @@ const ardbState = useState("ardb", () => new ArDB(arweave.value));
 let wallet = (useState("wallet", () => null)).value;
 let ardb = ardbState.value;
 let managedNames = ref([])
-console.log(wallet)
-managedNames.value = (await ardb.search("transactions").appName("Arweave-Nameserver").tags([{ name: "App-Name", values: ["Arweave-Nameserver"] }, { name: "Manager", values: [await wallet.getActiveAddress()] }]).exclude(["anchor"]).findAll()).map(nameRecord => {
-    console.log({
-        id: nameRecord.id,
-        domainName: nameRecord.tags.find(t => t.name == "Domain-Name") ? nameRecord.tags.find(t => t.name == "Domain-Name").value : null
-    })
+let rawNamesMeta = await ardb.search("transactions").appName("Arweave-Nameserver").tags([{ name: "App-Name", values: ["Arweave-Nameserver"] }, { name: "Manager", values: [await wallet.getActiveAddress()] }]).exclude(["anchor"]).findAll()
+managedNames.value = (await Promise.all(rawNamesMeta.map(async nameRecord => {
+    let nameContent = await fetch("https://arweave.net/" + nameRecord.id).then(r => r.json())
+    console.log(nameRecord.id)
+    let latestNameUpdate = (await ardb.search("transactions").sort("HEIGHT_DESC").from(nameContent.managers).appName("Arweave-Nameserver").tags([{ name: "Action", values: "UpdateName" }, { name: "Manager-TX", values: [nameRecord.id] }]).exclude("anchor").limit(1).findOne() || nameRecord)
     return {
         id: nameRecord.id,
-        domainName: nameRecord.tags.find(t => t.name == "Domain-Name") ? nameRecord.tags.find(t => t.name == "Domain-Name").value : null
+        domainName: latestNameUpdate.tags.find(t => t.name == "Domain-Name") ? latestNameUpdate.tags.find(t => t.name == "Domain-Name").value : null
     }
-}).filter(r => r.domainName !== null)
-console.log(managedNames.value)
+}))).filter(r => r.domainName != null)
+
 </script>

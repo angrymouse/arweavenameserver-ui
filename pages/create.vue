@@ -70,9 +70,7 @@
         </div>
 
     </div>
-    <div v-else-if="creatingStatus == 1" class="h-full w-full flex flex-col items-center justify-center">
-        <div class="lds-dual-ring"></div>
-    </div>
+    <Loading v-if="creatingStatus == 1" />
     <div v-else-if="creatingStatus == 2" class="h-full w-full flex flex-col items-center justify-center">
         <div class="text-3xl text-center">Congratulations! Recorded to Arweave!</div>
         <div class="text-lg text-center m-2">Now, assign these nameservers to <p
@@ -195,8 +193,8 @@ async function save() {
         wait(3000)
     }
     encodedRecordName.value = BigInt("0x" + bufferToHex(arweave.utils.b64UrlToBuffer(managementRecordId))).toString(36)
-
     creatingStatus.value = 2
+
 }
 function removeManager(manager) {
     managers.value = managers.value.filter(m => m != manager)
