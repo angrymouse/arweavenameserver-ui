@@ -2,7 +2,8 @@
 
     <div class="h-full w-full flex flex-col items-center justify-center" v-if="creatingStatus == 0">
         <h1 class="text-2xl mt-4">Create new Arweave-Nameserver record</h1>
-        <div class="bg-neutral lg:w-1/2 xl:w-1/2 w-3/4 p-4 mt-4 flex flex-col items-center justify-center">
+        <div
+            class="bg-neutral md:w-2/3 lg:w-2/3 xl:w-3/4 2xl:w-1/2 w-full p-4 mt-4 flex flex-col items-center justify-center">
             <p class="text-lg mb-2">Provide name</p>
             <input class="input w-full xl:w-1/3" placeholder="e.g mouse.stars" v-model="name" />
             <div class="flex flex-col w-full md:w-max  overflow-x-auto justify-center items-stretch ">
@@ -43,7 +44,12 @@
                         <tr v-for="(record, ri) in initialRecords">
                             <th>{{ record.type }}</th>
                             <td>{{ record.name }}</td>
-                            <td>{{ record.content }}</td>
+                            <td>{{ record.data.address }}{{ record.data.mx }}{{ record.data.txt }} {{ record.data.target
+                            }} {{ record.data.ns }} <div v-if="record.type == 'MX'"
+                                    class="badge ml-2 text-xs badge-outline">{{
+                                            record.data.priority
+                                    }}</div>
+                            </td>
                             <td>{{ record.ttl }}</td>
                             <td>
                                 <div class="inline-flex cursor-pointer" @click="removeRecord(ri)"><svg
@@ -60,10 +66,22 @@
             <div class="w-full mt-2 flex flex-row items-end justify-center flex-wrap  ">
                 <Selector @update:selected="selectType" :variants='recordTypeVariants' ref="typeSelector"
                     selectedVariantKey="A" label="Record type" />
-                <input class="input ml-2" placeholder="Record name (@ for root)" v-model="addingRecordName" /> <input
-                    class=" input ml-2" v-model="addingRecordContent" placeholder="Record content" />
+                <input class="input ml-2" placeholder="Record name (@ for root)" v-model="addingRecordName" />
+                <input v-if="selectedType == 'A'" class=" input ml-2" v-model="recData.address"
+                    placeholder="Record IPv4" />
+                <input v-if="selectedType == 'AAAA'" class=" input ml-2" v-model="recData.address"
+                    placeholder="Record IPv6" />
+                <input v-if="selectedType == 'NS'" class=" input ml-2" v-model="recData.ns"
+                    placeholder="Nameserver Address" />
+                <input v-if="selectedType == 'CNAME'" class=" input ml-2" v-model="recData.target"
+                    placeholder="CNAME Target" />
+                <input v-if="selectedType == 'MX'" class=" input ml-2" v-model="recData.mx" placeholder="Target" />
+                <input v-if="selectedType == 'MX'" class=" input ml-2" v-model="recData.priority" type="number"
+                    max="100" min="0" step="1" placeholder="Priority" />
+                <input v-if="selectedType == 'TXT'" class=" input ml-2" v-model="recData.txt"
+                    placeholder="Text Content" />
                 <Selector @update:selected="selectTTL" :variants='TTLVariants' label="Time to live" class="ml-2"
-                    ref="ttlSelector" :selectedVariantKey="60000" />
+                    ref="ttlSelector" :selectedVariantKey="300" />
                 <button class="btn btn-outline ml-2 mt-2" @click="addRecord">Add record</button>
             </div>
             <button class="btn btn-primary btn-lg px-8 mt-4 min-h-0 h-auto py-4" @click="save">Save</button>
@@ -107,7 +125,7 @@
 <script setup>
 import Arweave from "arweave"
 import ArDB from "ardb";
-import { makeZoneFile } from 'zone-file'
+import bns from "../lib/bns.js"
 
 const arweaveState = useState("arweave", () => {
     Arweave.init({
@@ -118,6 +136,14 @@ const arweaveState = useState("arweave", () => {
         logging: false,
     });
 });
+const recData = ref({
+    address: "",
+    mx: "",
+    priority: 10,
+    ns: "",
+    target: "",
+    txt: ""
+})
 const selectedType = ref("A")
 const encodedRecordName = ref("")
 const addingRecordName = ref("")
@@ -128,9 +154,9 @@ const typeSelector = ref(null)
 const ttlSelector = ref(null)
 const creatingStatus = ref(0)
 const name = ref("")
-const selectedTTL = ref(60000)
-const TTLVariants = ref([{ key: 60000, name: "1 Min" }, { key: 300000, name: "5 min" }, { key: 1.8e+6, name: "30 min" }, { key: 3.6e+6, name: "1 hour" }, { key: 2.16e+7, name: "6 hours" }, { key: 8.64e+7, name: "24 hours" }])
-const recordTypeVariants = ref([{ key: "A", name: "A" }, { key: "CNAME", name: "CNAME" }, { key: "AAAA", name: "AAAA" }, { key: "TXT", name: "TXT" }, { key: "NS", name: "NS" }])
+const selectedTTL = ref(300)
+const TTLVariants = ref([{ key: 60, name: "1 Min" }, { key: 300, name: "5 min" }, { key: 1800, name: "30 min" }, { key: 3600, name: "1 hour" }, { key: 21600, name: "6 hours" }, { key: 86400, name: "24 hours" }])
+const recordTypeVariants = ref([{ key: "A", name: "A" }, { key: "TXT", name: "TXT" }, { key: "CNAME", name: "CNAME" }, { key: "AAAA", name: "AAAA" }, { key: "MX", name: "MX" }, { key: "NS", name: "NS" }])
 const arweave = arweaveState.value;
 const ardbState = useState("ardb", () => new ArDB(arweave.value));
 let wallet = (useState("wallet", () => null)).value;
@@ -143,36 +169,44 @@ function selectTTL(newKey) {
     selectedTTL.value = newKey.value
 }
 function addRecord() {
+
     let recordObject = {
         name: addingRecordName.value,
-        content: addingRecordContent.value,
         ttl: selectedTTL.value,
+        data: recData.value,
         type: selectedType.value
     }
+    if (!recordObject.name.endsWith(".@") && recordObject.name != "" && recordObject.name != "@") { recordObject.name += ".@" }
+    if (recordObject.name == "") { recordObject.name = "@" }
     addingRecordName.value = ""
     addingRecordContent.value = ""
-    ttlSelector.value.select(60000)
+    ttlSelector.value.select(300)
     typeSelector.value.select("A")
+    recData.value = {
+        address: "",
+        mx: "",
+        priority: 10,
+        ns: "",
+        txt: "",
+        target: ""
+    }
     initialRecords.value.push(recordObject)
-    console.log(initialRecords.value)
+
 }
 function removeRecord(ri) {
     initialRecords.value = initialRecords.value.filter((r, cri) => cri != ri)
 }
+// console.log(bns)
 
 async function save() {
     creatingStatus.value = 1
-    let recordsZoneObject = {
-        "$origin": name.value.toUpperCase(),
-        "$ttl": 3600,
-        "ns": initialRecords.value.filter(r => r.type == "NS").map(r => ({ name: r.name, host: r.content })),
-        "a": initialRecords.value.filter(r => r.type == "A").map(r => ({ name: r.name, ip: r.content })),
-        "aaaa": initialRecords.value.filter(r => r.type == "AAAA").map(r => ({ name: r.name, ip: r.content })),
-        "cname": initialRecords.value.filter(r => r.type == "CNAME").map(r => ({ name: r.name, alias: r.content })),
-        "txt": initialRecords.value.filter(r => r.type == "TXT").map(r => ({ name: r.name, txt: r.content })),
 
-    }
-    let recordsZoneFile = makeZoneFile(recordsZoneObject)
+
+    let recordsZoneFile = bns.wire.toZone(initialRecords.value.map(r => {
+        r.data.txt = [r.data.txt]
+        r.data.priority = parseInt(r.data.priority)
+        return new bns.wire.Record().fromJSON({ name: (r.name.split("@").join(name.value)) + ".", ttl: r.ttl || 300, data: r.data, type: r.type, class: "IN" })
+    }))
     let recordsZoneTransaction = await arweave.createTransaction({
         data: recordsZoneFile,
     })

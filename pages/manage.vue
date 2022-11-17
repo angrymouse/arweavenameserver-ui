@@ -48,8 +48,8 @@
 </template>
 <script setup>
 import Arweave from "arweave"
-import { parseZoneFile } from 'zone-file'
 import ArDB from "ardb";
+import bns from "../lib/bns.js"
 const arweaveState = useState("arweave", () => {
     Arweave.init({
         host: "arweave.net",
@@ -74,7 +74,7 @@ let domainName = ref((await ardb.search("transactions").sort("HEIGHT_DESC").from
 let lastZonesTxSearch = await ardb.search("transactions").tags([{ name: "Target-NS-TxID", values: [domainMgrTx.value] }]).from(domainMgrData.value.managers).sort("HEIGHT_DESC").limit(1).exclude(["anchor"]).find()
 let lastZonesTx = lastZonesTxSearch.length > 0 ? lastZonesTxSearch[0].id : domainMgrData.value.recordsTx;
 let domainZoneFileRaw = await fetch(`https://arweave.net/` + lastZonesTx).then(r => r.text())
-let domainZone = parseZoneFile(domainZoneFileRaw)
+// let domainZone = parseZoneFile(domainZoneFileRaw)
 
 async function saveName() {
 
@@ -89,7 +89,7 @@ async function saveName() {
     await wallet.dispatch(nameUpdateTx)
     loading.value = false
 }
-console.log(parseZoneFile)
+console.log(bns.wire.fromZone(domainZoneFileRaw, domainName.value))
 
 function bufferToHex(bytes) {
     return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
