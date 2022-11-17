@@ -12,13 +12,10 @@
     "nuxt": "^3.0.0"
   },
   "dependencies": {
-    "@nuxt/webpack-builder": "^3.0.0",
     "ardb": "^1.1.10",
     "arweave": "^1.11.6",
     "arweave-wallet-connector": "^0.0.31",
     "bns-plus": "^0.15.2",
-    "daisyui": "^2.39.1",
-    "vite-plugin-require": "^1.0.8",
-    "zone-file": "^1.0.0"
+    "daisyui": "^2.39.1"
   }
 }
