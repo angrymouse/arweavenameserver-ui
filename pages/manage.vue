@@ -172,7 +172,7 @@ function selectTypeForRecord(ri, k) {
     records.value[ri].type = bns.constants.types[k]
 }
 function addBlankRecord() {
-    let newRecord = new bns.wire.Record().fromJSON({ name: domainName.value + ".", ttl: 300, data: { address: "111.111.111.111" }, type: "A", class: "IN" })
+    let newRecord = new bns.wire.Record().fromJSON({ name: domainName.value, ttl: 300, data: { address: "111.111.111.111" }, type: "A", class: "IN" })
     newRecord.data.address = ""
     records.value.push(newRecord)
 }
