@@ -21,7 +21,10 @@
                 <NuxtLink to="/create" class="btn btn-outline mt-2">Add one!</NuxtLink>
             </div>
         </div>
-
+        <div class="text-center">Made with ❤️ by <a class="link" href="https://github.com/angrymouse">Angrymouse</a>
+            with big support from <a class="link" href="https://arweave.org">Arweave</a> and <a class="link"
+                href="https://stargaze.zone">Stargaze</a>
+        </div>
     </div>
 </template>
 <script setup>
