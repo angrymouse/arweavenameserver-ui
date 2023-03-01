@@ -81,6 +81,8 @@
                     ref="ttlSelector" :selectedVariantKey="300" />
                 <button class="btn btn-outline ml-2 mt-2" @click="addRecord">Add record</button>
             </div>
+            <div class="w-full flex flex-row justify-center mt-2 items-center flex-wrap text-center text-xs">Don't forget to
+                press "Add record" before saving, otherwise record won't be added.</div>
             <button class="btn btn-primary btn-lg px-8 mt-4 min-h-0 h-auto py-4" @click="save">Save</button>
         </div>
 
