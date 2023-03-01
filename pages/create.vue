@@ -1,5 +1,4 @@
 <template>
-
     <div class="h-full w-full flex flex-col items-center justify-center" v-if="creatingStatus == 0">
         <h1 class="text-2xl mt-4">Create new Arweave-Nameserver record</h1>
         <div
@@ -11,7 +10,7 @@
                 <div v-for="manager in managers"
                     class="bg-base-100 p-2 flex flex-row justify-between items-center border-b border-b-base-content">
                     {{
-                            manager
+                        manager
                     }} <div class="inline-flex cursor-pointer ml-4" @click="removeManager(manager)"><svg
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
@@ -20,8 +19,8 @@
                 </div>
                 <div class="bg-base-100 p-0  flex flex-row justify-between items-center">
                     <input class="input py-0 px-2 h-10  w-full focus:outline-none"
-                        placeholder="Arweave address of new manager" v-model="newManager" /><button
-                        class="btn btn-sm mr-1" @click="addManager">Add</button>
+                        placeholder="Arweave address of new manager" v-model="newManager" /><button class="btn btn-sm mr-1"
+                        @click="addManager">Add</button>
 
                 </div>
             </div>
@@ -47,7 +46,7 @@
                             <td>{{ record.data.address }}{{ record.data.mx }}{{ record.data.txt }} {{ record.data.target
                             }} {{ record.data.ns }} <div v-if="record.type == 'MX'"
                                     class="badge ml-2 text-xs badge-outline">{{
-                                            record.data.priority
+                                        record.data.priority
                                     }}</div>
                             </td>
                             <td>{{ record.ttl }}</td>
@@ -67,8 +66,7 @@
                 <Selector @update:selected="selectType" :variants='recordTypeVariants' ref="typeSelector"
                     selectedVariantKey="A" label="Record type" />
                 <input class="input ml-2" placeholder="Record name (@ for root)" v-model="addingRecordName" />
-                <input v-if="selectedType == 'A'" class=" input ml-2" v-model="recData.address"
-                    placeholder="Record IPv4" />
+                <input v-if="selectedType == 'A'" class=" input ml-2" v-model="recData.address" placeholder="Record IPv4" />
                 <input v-if="selectedType == 'AAAA'" class=" input ml-2" v-model="recData.address"
                     placeholder="Record IPv6" />
                 <input v-if="selectedType == 'NS'" class=" input ml-2" v-model="recData.ns"
@@ -76,10 +74,9 @@
                 <input v-if="selectedType == 'CNAME'" class=" input ml-2" v-model="recData.target"
                     placeholder="CNAME Target" />
                 <input v-if="selectedType == 'MX'" class=" input ml-2" v-model="recData.mx" placeholder="Target" />
-                <input v-if="selectedType == 'MX'" class=" input ml-2" v-model="recData.priority" type="number"
-                    max="100" min="0" step="1" placeholder="Priority" />
-                <input v-if="selectedType == 'TXT'" class=" input ml-2" v-model="recData.txt"
-                    placeholder="Text Content" />
+                <input v-if="selectedType == 'MX'" class=" input ml-2" v-model="recData.priority" type="number" max="100"
+                    min="0" step="1" placeholder="Priority" />
+                <input v-if="selectedType == 'TXT'" class=" input ml-2" v-model="recData.txt" placeholder="Text Content" />
                 <Selector @update:selected="selectTTL" :variants='TTLVariants' label="Time to live" class="ml-2"
                     ref="ttlSelector" :selectedVariantKey="300" />
                 <button class="btn btn-outline ml-2 mt-2" @click="addRecord">Add record</button>
@@ -202,14 +199,14 @@ async function save() {
     creatingStatus.value = 1
 
 
-    let recordsZoneFile = bns.wire.toZone(initialRecords.value.map(r => {
+    let recordsZoneFile = initialRecords.value.length > 0 ? bns.wire.toZone(initialRecords.value.map(r => {
         r.data.txt = [r.data.txt]
         r.data.priority = parseInt(r.data.priority)
         return new bns.wire.Record().fromJSON({ name: (r.name.split("@").join(name.value)) + ".", ttl: r.ttl || 300, data: r.data, type: r.type, class: "IN" })
-    }))
-    let recordsZoneTransaction = await arweave.createTransaction({
+    })) : ""
+    let recordsZoneTransaction = initialRecords.value.length > 0 ? await arweave.createTransaction({
         data: recordsZoneFile,
-    })
+    }) : null
     recordsZoneTransaction.addTag("Content-Type", "text/dns-zone")
     let { id: zoneTxId } = await wallet.dispatch(recordsZoneTransaction)
 
