@@ -1,4 +1,4 @@
-import{x as bi,o as gi,b as pi,e as mi}from"./entry.f22023f8.js";const wi={},yi={class:"h-full w-full flex flex-col items-center justify-center"},Si=mi("div",{class:"lds-dual-ring"},null,-1),Ei=[Si];function Ai(Ht,je){return gi(),pi("div",yi,Ei)}const _i=bi(wi,[["render",Ai]]);/*!
+import{x as bi,o as gi,b as pi,e as mi}from"./entry.954ce471.js";const wi={},yi={class:"h-full w-full flex flex-col items-center justify-center"},Si=mi("div",{class:"lds-dual-ring"},null,-1),Ei=[Si];function Ai(Ht,je){return gi(),pi("div",yi,Ei)}const _i=bi(wi,[["render",Ai]]);/*!
  * bns-plus@0.15.2 - DNS bike-shed
  * Copyright (c) 2022, Christopher Jeffrey (MIT)
  * https://github.com/chjj/bns
